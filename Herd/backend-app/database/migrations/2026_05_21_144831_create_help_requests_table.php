@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('campaign', function (Blueprint $table) {
+        Schema::create('help_requests', function (Blueprint $table) {
             $table->id();
-            $table->string('judul');
-            $table->string('description');
-            $table->string('status');
             $table->timestamps();
         });
     }
@@ -25,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('help_requests');
     }
 };
