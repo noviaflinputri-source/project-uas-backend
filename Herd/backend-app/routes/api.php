@@ -56,4 +56,4 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Route untuk mendapatkan daftar sesuatu
     // Route::apiResource('/posts', PostController::class);
-});
+}); 
