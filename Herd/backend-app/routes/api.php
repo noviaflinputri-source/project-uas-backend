@@ -1,59 +1,45 @@
 <?php
 
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\HelpRequestController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\InformationController;
+use App\Http\Controllers\StoryController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\AdminController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
+// Public routes (tidak perlu auth)
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
-// Route login (tidak perlu middleware auth)
-Route::post('/login', function (Request $request) {
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
-
-    $user = User::where('email', $request->email)->first();
-
-    if (!$user || !Hash::check($request->password, $user->password)) {
-        return response()->json(['message' => 'Invalid credentials'], 401);
-    }
-
-    $token = $user->createToken('auth_token')->plainTextToken;
-
-    return response()->json([
-        'access_token' => $token,
-        'token_type' => 'Bearer',
-        'user' => $user
-    ]);
-});
-
-// Route logout (harus login dulu)
-Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
-    $request->user()->currentAccessToken()->delete();
-    return response()->json(['message' => 'Logged out successfully']);
-});
-
-// Route mendapatkan data user yang sedang login
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
-// Di sini Anda bisa menambahkan route lain yang dilindungi sanctum
+// Routes yang membutuhkan autentikasi (token)
 Route::middleware('auth:sanctum')->group(function () {
-    // Contoh: Route untuk update profil
-    // Route::put('/user/profile', [UserController::class, 'updateProfile']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 
-    // Route untuk mendapatkan daftar sesuatu
-    // Route::apiResource('/posts', PostController::class);
-}); 
+    // Fitur minta bantuan
+    Route::apiResource('help-requests', HelpRequestController::class)->only(['store', 'index', 'show']);
+    Route::post('/help-requests/{id}/accept', [HelpRequestController::class, 'accept']);
+
+    // Chat
+    Route::get('/chats/{help_request_id}', [ChatController::class, 'getMessages']);
+    Route::post('/chats', [ChatController::class, 'sendMessage']);
+
+    // Berbagi informasi
+    Route::apiResource('informations', InformationController::class)->except(['show']); // show tidak perlu
+
+    // Berbagi cerita & komentar
+    Route::apiResource('stories', StoryController::class)->only(['store', 'index', 'show']);
+    Route::get('/stories/{story_id}/comments', [CommentController::class, 'index']);
+    Route::post('/stories/{story_id}/comments', [CommentController::class, 'store']);
+
+    // Admin only routes
+    Route::middleware('admin')->prefix('admin')->group(function () {
+        Route::get('/users/pending', [AdminController::class, 'pendingUsers']);
+        Route::patch('/users/{id}/verify', [AdminController::class, 'verifyUser']);
+        Route::get('/informations/pending', [AdminController::class, 'pendingInformations']);
+        Route::patch('/informations/{id}/verify', [AdminController::class, 'verifyInformation']);
+    });
+});
