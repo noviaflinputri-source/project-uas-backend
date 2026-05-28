@@ -15,14 +15,18 @@ class HelpRequestController extends Controller
             return response()->json(['message' => 'Hanya penyandang disabilitas yang dapat meminta bantuan'], 403);
         }
 
+        // Validasi ditambah agar category wajib diisi dan berupa string
         $request->validate([
-            'description' => 'required|string'
+            'description' => 'required|string',
+            'category'    => 'required|string' 
         ]);
 
+        // Menyimpan data ke database termasuk kolom category baru
         $help = HelpRequest::create([
-            'user_id' => $user->id,
+            'user_id'     => $user->id,
             'description' => $request->description,
-            'status' => 'pending'
+            'category'    => $request->category, // <-- Kolom baru kamu nangkring di sini!
+            'status'      => 'pending'
         ]);
 
         return response()->json($help, 201);
