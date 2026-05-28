@@ -17,17 +17,22 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:disabilitas,relawan'
+            'username' => 'required|string|max:255|unique:users',
+            'phone' => 'required|string|max:20',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|confirmed|min:6',
+            'role' => 'required|in:relawan,disabilitas',
         ]);
 
         $user = User::create([
             'name' => $request->name,
+            'username' => $request->username,
+            'phone' => $request->phone,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => bcrypt($request->password),
             'role' => $request->role,
-            'status' => 'pending' // butuh verifikasi admin
+            'status' => 'approved',
+            'verified_at' => null,
         ]);
 
         return response()->json([
@@ -50,7 +55,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Email atau password salah'], 401);
         }
 
-        if ($user->status !== 'approved') {
+        if (is_null($user->verified_at)) {
             return response()->json(['message' => 'Akun belum diverifikasi oleh admin'], 403);
         }
 
