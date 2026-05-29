@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
-    // Middleware cek admin akan dipasang di routes
+    // Middleware cek admin dipasang di rute api.php
 
     // Daftar user pending
     public function pendingUsers()
@@ -31,9 +31,10 @@ class AdminController extends Controller
         return response()->json(['message' => "User status diubah menjadi {$request->status}"]);
     }
 
-    // Daftar informasi yang belum diverifikasi
+    // Daftar informasi yang belum diverifikasi (Sudah diperbaiki dengan relasi)
     public function pendingInformations()
     {
+        // Berhasil memanggil data informasi beserta objek user pembuatnya
         $infos = Information::where('is_verified', false)->with('user')->get();
         return response()->json($infos);
     }

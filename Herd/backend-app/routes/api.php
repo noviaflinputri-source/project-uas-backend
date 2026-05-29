@@ -17,10 +17,14 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 // Routes yang membutuhkan autentikasi (token)
 Route::middleware('auth:sanctum')->group(function () {
+
+    // Logout
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Fitur minta bantuan
-    Route::apiResource('help-requests', HelpRequestController::class)->only(['store', 'index', 'show']);
+    Route::apiResource('help-requests', HelpRequestController::class)
+        ->only(['store', 'index', 'show']);
+
     Route::post('/help-requests/{id}/accept', [HelpRequestController::class, 'accept']);
 
     // Chat
@@ -28,18 +32,25 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chats', [ChatController::class, 'sendMessage']);
 
     // Berbagi informasi
-    Route::apiResource('informations', InformationController::class)->except(['show']); // show tidak perlu
+    Route::apiResource('informations', InformationController::class)
+        ->except(['show']);
 
     // Berbagi cerita & komentar
-    Route::apiResource('stories', StoryController::class)->only(['store', 'index', 'show']);
+    Route::apiResource('stories', StoryController::class)
+        ->only(['store', 'index', 'show']);
+
     Route::get('/stories/{story_id}/comments', [CommentController::class, 'index']);
     Route::post('/stories/{story_id}/comments', [CommentController::class, 'store']);
 
     // Admin only routes
     Route::middleware('admin')->prefix('admin')->group(function () {
+
         Route::get('/users/pending', [AdminController::class, 'pendingUsers']);
+
         Route::patch('/users/{id}/verify', [AdminController::class, 'verifyUser']);
+
         Route::get('/informations/pending', [AdminController::class, 'pendingInformations']);
+
         Route::patch('/informations/{id}/verify', [AdminController::class, 'verifyInformation']);
     });
 });
