@@ -23,8 +23,10 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'http://localhost:5173',   // Sisi Frontend React (Vite)
-        'http://localhost:9000',   // Sisi Backend Laravel
+        'http://localhost:5173',   // Sisi Frontend React (Vite) via Localhost
+        'http://127.0.0.1:5173',   // Sisi Frontend React (Vite) via IP
+        'http://localhost:9000',   // Sisi Backend Laravel via Localhost
+        'http://127.0.0.1:9000',   // Sisi Backend Laravel via IP
     ],
 
     'allowed_origins_patterns' => [],
