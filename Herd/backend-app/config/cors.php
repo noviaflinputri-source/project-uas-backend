@@ -1,6 +1,7 @@
 <?php
 
 return [
+
     /*
     |--------------------------------------------------------------------------
     | Cross-Origin Resource Sharing (CORS) Configuration
@@ -22,8 +23,8 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'http://localhost:5173',   // Frontend React (Vite)
-        'http://localhost:9000',   // Backend Laravel (jika diperlukan)
+        'http://localhost:5173',   // Sisi Frontend React (Vite)
+        'http://localhost:9000',   // Sisi Backend Laravel
     ],
 
     'allowed_origins_patterns' => [],
@@ -34,6 +35,6 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true,   // WAJIB true untuk cookie & session
+    'supports_credentials' => true,
 
 ];
