@@ -12,10 +12,13 @@ class AdminSeeder extends Seeder
     {
         User::create([
             'name' => 'Super Admin',
+              'username' => 'superadmin',
             'email' => 'admin@inklusi.com',
             'password' => Hash::make('password123'),
             'role' => 'admin',
-            'status' => 'approved'
+            'status' => 'approved',
+            'phone' => '08123456789',
+            'verified_at' => now(),
         ]);
     }
 }

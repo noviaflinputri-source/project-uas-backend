@@ -10,26 +10,46 @@ class HelpRequestController extends Controller
     // Hanya penyandang disabilitas: buat permintaan bantuan
     public function store(Request $request)
     {
-        $user = $request->user();
-        if ($user->role !== 'disabilitas') {
-            return response()->json(['message' => 'Hanya penyandang disabilitas yang dapat meminta bantuan'], 403);
+        try {
+            $user = $request->user();
+            
+            if (!$user) {
+                return response()->json(['message' => 'Sesi login tidak valid, silakan login ulang.'], 401);
+            }
+
+            // TETEP NYALA: Validasi fungsionalitas role demi penilaian UAS yang objektif
+            if ($user->role !== 'disabilitas') {
+                return response()->json([
+                    'message' => 'Hanya pengguna dengan akun "disabilitas" yang diizinkan mengirim formulir ini. Akun Anda saat ini terdaftar sebagai role: ' . $user->role
+                ], 403);
+            }
+
+            // Proses validasi field data dari request react
+            $request->validate([
+                'description' => 'required|string',
+                'category'    => 'required|string' 
+            ]);
+
+            // Menyimpan data ke database relasi table
+            $help = HelpRequest::create([
+                'user_id'     => $user->id,
+                'description' => $request->description,
+                'category'    => $request->category, 
+                'status'      => 'pending'
+            ]);
+
+            return response()->json($help, 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Proses validasi data gagal.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Terjadi kendala pada sistem database internal: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Validasi ditambah agar category wajib diisi dan berupa string
-        $request->validate([
-            'description' => 'required|string',
-            'category'    => 'required|string' 
-        ]);
-
-        // Menyimpan data ke database termasuk kolom category baru
-        $help = HelpRequest::create([
-            'user_id'     => $user->id,
-            'description' => $request->description,
-            'category'    => $request->category, // <-- Kolom baru kamu nangkring di sini!
-            'status'      => 'pending'
-        ]);
-
-        return response()->json($help, 201);
     }
 
     // List permintaan bantuan (untuk relawan: semua pending; untuk disabilitas: miliknya sendiri)
