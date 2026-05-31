@@ -3,58 +3,50 @@
 namespace App\Http\Controllers;
 
 use App\Models\Chat;
-use App\Models\HelpRequest;
+use App\Events\MessageSent;
 use Illuminate\Http\Request;
 
 class ChatController extends Controller
 {
-    // Kirim pesan
+    // 1. DISESUAIKAN: Nama fungsi diubah dari fetchMessages menjadi getMessages agar cocok dengan route kamu
+    public function getMessages($help_request_id)
+    {
+        $chats = Chat::where('help_request_id', $help_request_id)
+                     ->orderBy('created_at', 'asc')
+                     ->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $chats
+        ], 200);
+    }
+
+    // 2. TETAP: Sesuai dengan route Route::post('/chats')
     public function sendMessage(Request $request)
     {
         $request->validate([
-            'help_request_id' => 'required|exists:help_requests,id',
-            'message' => 'required|string'
+            'help_request_id' => 'required|integer',
+            'sender_id'       => 'required|integer',
+            'receiver_id'     => 'required|integer',
+            'message'         => 'required|string',
         ]);
 
-        $user = $request->user();
-        $help = HelpRequest::findOrFail($request->help_request_id);
-
-        // Pastikan user terlibat dalam bantuan ini
-        if ($user->id !== $help->user_id && $user->id !== $help->relawan_id) {
-            return response()->json(['message' => 'Anda tidak terlibat dalam percakapan ini'], 403);
-        }
-
-        $receiverId = ($user->id === $help->user_id) ? $help->relawan_id : $help->user_id;
-
+        // Simpan pesan ke database HeidiSQL
         $chat = Chat::create([
-            'help_request_id' => $help->id,
-            'sender_id' => $user->id,
-            'receiver_id' => $receiverId,
-            'message' => $request->message
+            'help_request_id' => $request->help_request_id,
+            'sender_id'       => $request->sender_id,
+            'receiver_id'     => $request->receiver_id,
+            'message'         => $request->message,
+            'is_read'         => 0,
         ]);
 
-        return response()->json($chat, 201);
-    }
+        // Siarkan sinyal real-time lewat Reverb
+        broadcast(new MessageSent($chat))->toOthers();
 
-    // Ambil semua chat dari suatu help request
-    public function getMessages(Request $request, $help_request_id)
-    {
-        $user = $request->user();
-        $help = HelpRequest::findOrFail($help_request_id);
-
-        if ($user->id !== $help->user_id && $user->id !== $help->relawan_id) {
-            return response()->json(['message' => 'Akses ditolak'], 403);
-        }
-
-        $chats = Chat::where('help_request_id', $help_request_id)
-            ->orderBy('created_at', 'asc')
-            ->get();
-
-        // Tandai pesan yang diterima sebagai sudah dibaca
-        Chat::where('help_request_id', $help_request_id)
-            ->where('receiver_id', $user->id)
-            ->update(['is_read' => true]);
-
-        return response()->json($chats);
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesan terkirim!',
+            'data'    => $chat
+        ], 201);
     }
 }
