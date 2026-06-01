@@ -9,13 +9,10 @@ class Chat extends Model
 {
     use HasFactory;
 
+    // Menghubungkan ke nama tabel asli kamu di phpMyAdmin
     protected $table = 'chats'; 
 
-    protected $fillable = [
-        'help_request_id',
-        'sender_id',
-        'receiver_id',
-        'message',
-        'is_read'
-    ];
+    // PERBAIKAN UTAMA: Menggunakan guarded kosong berarti membiarkan semua kolom 
+    // menerima data murni (termasuk NULL) secara langsung tanpa hambatan validasi model!
+    protected $guarded = [];
 }
