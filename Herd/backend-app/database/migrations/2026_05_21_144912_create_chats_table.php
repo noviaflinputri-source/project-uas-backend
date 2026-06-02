@@ -6,20 +6,34 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
     {
         Schema::create('chats', function (Blueprint $table) {
             $table->id();
+            
+            // help_request_id tidak dicentang Allow NULL di gambar, jadi biarkan begini
             $table->foreignId('help_request_id')->constrained()->onDelete('cascade');
-            $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('receiver_id')->constrained('users')->onDelete('cascade');
+            
+            // 🛠️ TAMBAHKAN ->nullable() agar Allow NULL dicentang dan default-nya NULL
+            $table->foreignId('sender_id')->nullable()->constrained('users')->onDelete('cascade');
+            $table->foreignId('receiver_id')->nullable()->constrained('users')->onDelete('cascade');
+            
             $table->text('message');
-            $table->boolean('is_read')->default(false);
+            
+            // 🛠️ TAMBAHKAN ->nullable() juga di sini agar Allow NULL-nya tercentang seperti di gambar
+            $table->tinyInteger('is_read')->nullable()->default(0); 
+            
             $table->timestamps();
         });
     }
 
-    public function down()
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
     {
         Schema::dropIfExists('chats');
     }
