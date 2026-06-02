@@ -11,8 +11,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('username')->unique()->after('name');
-            $table->string('phone')->after('username');
+            // Dikosongkan karena kolom username dan phone sudah dicover di file pertama
         });
     }
 

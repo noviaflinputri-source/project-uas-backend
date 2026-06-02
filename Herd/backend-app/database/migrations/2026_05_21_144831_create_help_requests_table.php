@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('help_requests', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->unsignedBigInteger('user_id'); 
+            $table->text('description');           
+            $table->string('category');            
+            $table->string('status')->default('pending'); 
+            $table->unsignedBigInteger('relawan_id')->nullable(); 
+            $table->timestamps();                  
         });
     }
 
