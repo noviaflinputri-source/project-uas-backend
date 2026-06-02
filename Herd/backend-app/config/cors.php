@@ -22,11 +22,11 @@ return [
 
     'allowed_methods' => ['*'],
 
+    // Mengizinkan asal request dari frontend React murni dan wildcard development
     'allowed_origins' => [
-        'http://localhost:5173',   // Sisi Frontend React (Vite) via Localhost
-        'http://127.0.0.1:5173',   // Sisi Frontend React (Vite) via IP
-        'http://localhost:9000',   // Sisi Backend Laravel via Localhost
-        'http://127.0.0.1:9000',   // Sisi Backend Laravel via IP
+        'http://localhost:5173',   
+        'http://127.0.0.1:5173',   
+        '*'
     ],
 
     'allowed_origins_patterns' => [],

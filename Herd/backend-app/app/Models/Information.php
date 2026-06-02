@@ -9,8 +9,10 @@ class Information extends Model
 {
     use HasFactory;
 
+    // Deklarasikan nama tabel secara tegas
     protected $table = 'informations';
 
+    // WAJIB: Daftarkan kolom agar tidak terkena Mass Assignment Error 500
     protected $fillable = [
         'user_id',
         'title',
@@ -18,9 +20,4 @@ class Information extends Model
         'is_verified',
         'verified_by'
     ];
-
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
 }
