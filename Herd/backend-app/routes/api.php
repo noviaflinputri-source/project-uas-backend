@@ -25,9 +25,7 @@ Route::post('/help-requests/{id}/accept', [HelpRequestController::class, 'accept
 Route::get('/chats/{help_request_id}', [ChatController::class, 'getMessages']);
 Route::post('/chats', [ChatController::class, 'sendMessage']);
 
-// ---------------------------------------------------------------------------
-// KOREKSI UTAMA: AKSES INFORMASI DENGAN FORCE INJECT CORS HEADERS
-// ---------------------------------------------------------------------------
+// Akses Informasi Publik (Dengan Force Inject CORS Headers)
 Route::get('/informations', [InformationController::class, 'index']);
 
 Route::match(['post', 'options'], '/informations', function (Illuminate\Http\Request $request) {
@@ -61,6 +59,9 @@ Route::match(['post', 'options'], '/informations', function (Illuminate\Http\Req
     }
 });
 
+// FITUR BARU: Endpoint Real Data untuk Grafik & Card Statistik Admin Dashboard
+Route::get('/admin/dashboard-stats', [AdminController::class, 'getDashboardStats']);
+
 
 // ==========================================
 // PROTECTED ROUTES (Membutuhkan Autentikasi / Token Sanctum)
@@ -80,7 +81,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/stories/{story_id}/comments', [CommentController::class, 'index']);
     Route::post('/stories/{story_id}/comments', [CommentController::class, 'store']);
 
-    // Admin only routes
+    // Admin only routes (Aksi Verifikasi & Approval)
     Route::middleware('admin')->prefix('admin')->group(function () {
         Route::get('/users/pending', [AdminController::class, 'pendingUsers']);
         Route::patch('/users/{id}/verify', [AdminController::class, 'verifyUser']);
