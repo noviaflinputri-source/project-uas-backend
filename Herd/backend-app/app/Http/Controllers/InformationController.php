@@ -1,85 +1,57 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
+use App\Http\Controllers\Controller;
 use App\Models\Information;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class InformationController extends Controller
 {
-    // Relawan membuat info (perlu verifikasi admin)
+    // 1. MENGAMBIL SEMUA DATA INFORMASI UNTUK REACT
+    public function index()
+    {
+        $informasi = Information::orderBy('created_at', 'desc')->get();
+        
+        return response()->json([
+            'success' => true,
+            'data'    => $informasi
+        ], 200);
+    }
+
+    // 2. MENYIMPAN DATA INFORMASI BARU KE DATABASE
     public function store(Request $request)
     {
-        $user = $request->user();
-        if ($user->role !== 'relawan') {
-            return response()->json(['message' => 'Hanya relawan yang dapat berbagi informasi'], 403);
-        }
-
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string'
+        // Validasi input dari frontend
+        $validator = Validator::make($request->all(), [
+            'title'   => 'required|string|max:255',
+            'content' => 'required|string',
         ]);
 
-        $info = Information::create([
-            'user_id' => $user->id,
-            'title' => $request->title,
-            'content' => $request->content,
-            'is_verified' => false
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        // Ambil ID pengguna dari token Sanctum, jika tidak ada pakai input request, fallback ke 1
+        $userId = auth()->id() ?? $request->input('user_id') ?? 1;
+
+        // Simpan ke tabel 'informations'
+        $informasi = Information::create([
+            'user_id'     => $userId,
+            'title'       => $request->input('title'),
+            'content'     => $request->input('content'),
+            'is_verified' => false, 
         ]);
 
-        return response()->json(['message' => 'Informasi berhasil dikirim, menunggu verifikasi admin', 'info' => $info], 201);
-    }
-
-    // Tampilkan informasi: untuk disabilitas hanya yang verified; relawan lihat semua milik sendiri + verified
-    public function index(Request $request)
-    {
-        $user = $request->user();
-        if ($user->role === 'disabilitas') {
-            $infos = Information::where('is_verified', true)->with('user')->get();
-        } else {
-            // relawan: info milik sendiri (belum verified) + info yang sudah verified (milik siapa saja)
-            $infos = Information::where(function($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->orWhere('is_verified', true);
-            })->with('user')->get();
-        }
-        return response()->json($infos);
-    }
-
-    // Relawan dapat mengedit info miliknya sendiri (selama belum diverifikasi)
-    public function update(Request $request, $id)
-    {
-        $user = $request->user();
-        $info = Information::findOrFail($id);
-
-        if ($info->user_id !== $user->id || $user->role !== 'relawan') {
-            return response()->json(['message' => 'Tidak diizinkan'], 403);
-        }
-
-        if ($info->is_verified) {
-            return response()->json(['message' => 'Informasi yang sudah diverifikasi tidak bisa diubah'], 400);
-        }
-
-        $request->validate([
-            'title' => 'string|max:255',
-            'content' => 'string'
-        ]);
-
-        $info->update($request->only(['title', 'content']));
-        return response()->json($info);
-    }
-
-    // Hapus info (hanya oleh pembuat atau admin)
-    public function destroy(Request $request, $id)
-    {
-        $user = $request->user();
-        $info = Information::findOrFail($id);
-
-        if ($info->user_id !== $user->id && $user->role !== 'admin') {
-            return response()->json(['message' => 'Tidak diizinkan'], 403);
-        }
-
-        $info->delete();
-        return response()->json(['message' => 'Informasi dihapus']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Informasi berhasil disimpan ke database!',
+            'data'    => $informasi
+        ], 201);
     }
 }
