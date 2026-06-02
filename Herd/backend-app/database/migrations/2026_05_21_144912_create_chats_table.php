@@ -14,19 +14,35 @@ return new class extends Migration
         Schema::create('chats', function (Blueprint $table) {
             $table->id();
             
-            // help_request_id tidak dicentang Allow NULL di gambar, jadi biarkan begini
-            $table->foreignId('help_request_id')->constrained()->onDelete('cascade');
+            // Kolom utama relasi bantuan
+            $table->unsignedBigInteger('help_request_id');
             
-            // 🛠️ TAMBAHKAN ->nullable() agar Allow NULL dicentang dan default-nya NULL
-            $table->foreignId('sender_id')->nullable()->constrained('users')->onDelete('cascade');
-            $table->foreignId('receiver_id')->nullable()->constrained('users')->onDelete('cascade');
+            // Kolom relasi user (Dibuat nullable agar kotak "Allow NULL" tercentang hijau)
+            $table->unsignedBigInteger('sender_id')->nullable();
+            $table->unsignedBigInteger('receiver_id')->nullable();
             
             $table->text('message');
-            
-            // 🛠️ TAMBAHKAN ->nullable() juga di sini agar Allow NULL-nya tercentang seperti di gambar
             $table->tinyInteger('is_read')->nullable()->default(0); 
-            
             $table->timestamps();
+
+            // 🛠️ PENGATURAN FOREIGN KEY (DISESUAIKAN DENGAN GAMBAR KAMU)
+            // 1. help_request_id menggunakan CASCADE saat didelete
+            $table->foreign('help_request_id')
+                  ->references('id')
+                  ->on('help_requests')
+                  ->onDelete('cascade');
+
+            // 2. sender_id menggunakan NO ACTION saat didelete
+            $table->foreign('sender_id')
+                  ->references('id')
+                  ->on('users')
+                  ->onDelete('no action');
+
+            // 3. receiver_id menggunakan NO ACTION saat didelete
+            $table->foreign('receiver_id')
+                  ->references('id')
+                  ->on('users')
+                  ->onDelete('no action');
         });
     }
 
