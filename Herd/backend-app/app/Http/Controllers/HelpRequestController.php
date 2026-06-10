@@ -110,7 +110,7 @@ class HelpRequestController extends Controller
         }
     }
 
-    // Detail help request (untuk kebutuhan chat privat)
+    // Detail help request (SUDAH DIPERBAIKi UNTUK KEBUTUHAN POLLING NOTIFIKASI REACT)
     public function show($id)
     {
         $help = HelpRequest::findOrFail($id);
@@ -119,10 +119,16 @@ class HelpRequestController extends Controller
 
         return response()->json([
             'id' => $help->id,
+            'user_id' => $help->user_id,
+            'relawan_id' => $help->relawan_id, // PERBAIKAN UTAMA: Dikirim ke React agar polling if(relawan_id) bisa mendeteksi nilai true
             'description' => $help->description,
+            'category' => $help->category,      // Menampilkan kategori bantuan agar sinkron di komponen chat privat
             'status' => $help->status,
             'user' => $findUser,
             'relawan' => $findRelawan
-        ])->header('Access-Control-Allow-Origin', '*');
+        ])
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
     }
 }
